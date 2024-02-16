@@ -1,5 +1,7 @@
 """Post-processing utility functions."""
 from typing import Tuple
+import json
+from pathlib import Path
 import numpy as np
 
 from honeybee_radiance.writer import _filter_by_pattern
@@ -167,3 +169,27 @@ def _filter_grids_by_pattern(grids_info, filter_pattern):
     grids = _filter_by_pattern(grids_info, filter=filter_pattern)
 
     return grids
+
+
+def study_type_from_folder(folder: str):
+    """Get the study type from a results folder.
+
+    This function reads the study info JSON file in the results folder, and
+    return the study type. The study types are "annual_daylight" or
+    "annual_irradiance". If either the study info JSON file or type is not
+    present the default value is "annual_daylight".
+    
+    Args:
+        folder: Path to results folder.
+    
+    Returns:
+        Study type as a string.
+    """
+    study_info_path = Path(folder, 'study_info.json')
+    if study_info_path.exists():
+        with open(study_info_path) as study_info_file:
+            study_info = json.load(study_info_file)
+        study_type = study_info.get('type', 'annual_daylight')
+    else:
+        study_type = 'annual_daylight'
+    return study_type

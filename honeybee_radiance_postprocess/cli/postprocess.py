@@ -9,19 +9,19 @@ import numpy as np
 
 from ladybug.location import Location
 from ladybug.wea import Wea
-from honeybee_radiance_postprocess.results.annual_daylight import AnnualDaylight
-from honeybee_radiance_postprocess.results.annual_irradiance import AnnualIrradiance
+
+from honeybee_radiance_postprocess.cli.two_phase import two_phase
+from honeybee_radiance_postprocess.cli.leed import leed
+from honeybee_radiance_postprocess.annual import occupancy_schedule_8_to_6
+from honeybee_radiance_postprocess.dynamic import DynamicSchedule
+from honeybee_radiance_postprocess.en17037 import en17037_to_folder
+from honeybee_radiance_postprocess.helper import model_grid_areas, grid_summary
 from honeybee_radiance_postprocess.metrics import da_array2d, cda_array2d, \
     udi_array2d, udi_lower_array2d, udi_upper_array2d
 from honeybee_radiance_postprocess.reader import binary_to_array
-
-from ..annual import occupancy_schedule_8_to_6
-from ..dynamic import DynamicSchedule
-from ..en17037 import en17037_to_folder
-from ..util import filter_array
-from .two_phase import two_phase
-from .leed import leed
-from ..helper import model_grid_areas, grid_summary
+from honeybee_radiance_postprocess.results.annual_daylight import AnnualDaylight
+from honeybee_radiance_postprocess.results.annual_irradiance import AnnualIrradiance
+from honeybee_radiance_postprocess.util import filter_array, study_type_from_folder
 
 _logger = logging.getLogger(__name__)
 
@@ -479,8 +479,12 @@ def annual_to_data(
 
     res_type = 'total' if total is True else 'direct'
 
+    study_type = study_type_from_folder(folder)
     try:
-        results = AnnualDaylight(folder)
+        if study_type == 'annual_daylight':
+            results = AnnualDaylight(folder)
+        elif study_type == 'annual_irradiance':
+            results = AnnualIrradiance(folder)
         data_cs, grids_info, sensor_index = results.annual_data(
             states=states, grids_filter=grids_filter,
             sensor_index=sensor_index, res_type=res_type)
